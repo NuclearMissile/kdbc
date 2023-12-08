@@ -15,9 +15,9 @@ abstract class Table(private val name: String? = null) : ColumnOrTable {
 
     var tableAlias: String? = null
     var rs: ResultSet? = null
-    val tableName: String get() = name ?: javaClass.simpleName.toLowerCase()
+    val tableName: String get() = name ?: javaClass.simpleName.lowercase()
 
-    inline protected fun <reified T : Any> column(name: String, ddl: String? = null, noinline getter: (ResultSet.(String) -> T)? = null): Column<T> {
+    protected inline fun <reified T : Any> column(name: String, ddl: String? = null, noinline getter: (ResultSet.(String) -> T)? = null): Column<T> {
         val column = Column(this, name, ddl, getter ?: defaultGetter()) {
             rs ?: throw SQLException("ResultSet was not configured when column value was requested")
         }
@@ -26,7 +26,7 @@ abstract class Table(private val name: String? = null) : ColumnOrTable {
         return column
     }
 
-    inline protected fun <reified T : Any> defaultGetter(): ResultSet.(String) -> T? = {
+    protected inline fun <reified T : Any> defaultGetter(): ResultSet.(String) -> T? = {
         when (T::class.javaPrimitiveType ?: T::class) {
             UUID::class -> getUUID(it) as? T
             Int::class.javaPrimitiveType -> getInt(it) as? T

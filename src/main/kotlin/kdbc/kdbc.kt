@@ -17,7 +17,6 @@ class KDBC {
         fun setDataSource(dataSource: DataSource) {
             setConnectionFactory { dataSource.connection }
         }
-
     }
 }
 

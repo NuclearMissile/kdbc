@@ -7,24 +7,9 @@ KDBC provides type safe SQL queries for Kotlin. Features:
 - Explicit, but convenient O/R mapping
 - Optional DDL generation
 
-## Binaries
-
-Until this is released on Maven Central, you can use [JitPack](https://jitpack.io/) to build a snapshot as a dependency using Gradle or Maven:
-
-**Gradle**
-
-```groovy
-repositories {
-     maven { url 'https://jitpack.io' }
-}
-dependencies {
-    compile 'com.github.edvin:kdbc:master-SNAPSHOT'
-}  
-```
-
 **Maven**
 
-```groovy 
+```xml 
 <repositories>
     <repository>
         <id>jitpack.io</id>
@@ -45,9 +30,9 @@ To query or update a table you need a `Table` object that represents the databas
 
 ```kotlin
 class CUSTOMER : Table() {
-    val id = column<Int>("id)
-    val name = column<String>("name)
-    val zip = column<String>("zip)
+    val id = column<Int>("id")
+    val name = column<String>("name")
+    val zip = column<String>("zip")
     val city = column<String>("city")
 }
 ```
@@ -144,9 +129,9 @@ Let's do a join! We'll introduce a `STATE` table and `State` domain object:
 
 ```kotlin
 class STATE : Table() {
-    val id = column<UUID>("id)
+    val id = column<UUID>("id")
     val code = column<String>("code")
-    val name = column<String>("name)
+    val name = column<String>("name")
 }
 
 data class State(

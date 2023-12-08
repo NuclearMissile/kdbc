@@ -4,15 +4,17 @@ import kotlin.reflect.KClass
 
 abstract class Expr(val parent: Expr?) {
     companion object {
-        val NoSpaceWhenLastChar = arrayOf(' ', '(', ')', '\n')
+        val NoSpaceLastChar = arrayOf(' ', '(', ')', '\n')
     }
 
-    val query: Query<*> get() = if (this is Query<*>) this else parent as? Query<*> ?: parent!!.query
+    val query: Query<*>
+        get() = if (this is Query<*>) this else parent as? Query<*> ?: parent!!.query
 
     val expressions = mutableListOf<Expr>()
 
     fun gatherParams(params: MutableList<Param>) {
-        if (this is ComparisonExpr) params.add(param)
+        if (this is ComparisonExpr)
+            params.add(param)
         expressions.forEach { it.gatherParams(params) }
     }
 
@@ -40,8 +42,7 @@ abstract class Expr(val parent: Expr?) {
     }
 
     protected fun prefixWithSpace(s: StringBuilder) {
-        if (s.isNotEmpty() && !NoSpaceWhenLastChar.contains(s.last()))
-            s.append(" ")
+        if (s.isNotEmpty() && !NoSpaceLastChar.contains(s.last())) s.append(" ")
     }
 
     fun append(sql: String) = add(StringExpr(sql, this))
@@ -72,13 +73,13 @@ abstract class Expr(val parent: Expr?) {
     fun having(op: HavingExpr.() -> Unit) = add(HavingExpr(this), op)
 
     fun <T> batch(entities: Iterable<T>, large: Boolean = false, op: (BatchExpr<T>).(T) -> Unit) =
-            add(BatchExpr(entities, large, op, this))
+        add(BatchExpr(entities, large, op, this))
 
     fun select(vararg columns: ColumnOrTable, op: (SelectExpr.() -> Unit)? = null) =
-            add(SelectExpr(columns.flatMap { (it as? Table)?.columns ?: listOf(it as Column<*>) }, this), op)
+        add(SelectExpr(columns.flatMap { (it as? Table)?.columns ?: listOf(it as Column<*>) }, this), op)
 
     fun select(columns: Iterable<ColumnOrTable>, op: (SelectExpr.() -> Unit)? = null) =
-            add(SelectExpr(columns.flatMap { (it as? Table)?.columns ?: listOf(it as Column<*>) }, this), op)
+        add(SelectExpr(columns.flatMap { (it as? Table)?.columns ?: listOf(it as Column<*>) }, this), op)
 
     fun <T : Table> update(table: T, op: (SetExpr.() -> Unit)? = null): UpdateExpr {
         val updateExpr = add(UpdateExpr(table, this))
@@ -88,21 +89,20 @@ abstract class Expr(val parent: Expr?) {
 
     fun set(op: SetExpr.() -> Unit) = add(SetExpr(this), op)
 
-    fun <T : Table> insert(table: T, op: InsertExpr.() -> Unit)
-            = add(InsertExpr(table, this), op)
+    fun <T : Table> insert(table: T, op: InsertExpr.() -> Unit) = add(InsertExpr(table, this), op)
 
     fun delete(table: Table, op: (DeleteExpr.() -> Unit)? = null) =
-            add(DeleteExpr(table, this), op)
+        add(DeleteExpr(table, this), op)
 
     fun orderBy(col: Column<*>, order: OrderByExpr.Order = OrderByExpr.Order.ASC) = add(OrderByExpr(col, order, this))
 
     infix fun limit(limit: Int) = add(LimitExpr(limit, this))
 
     fun from(vararg tables: Table, op: (FromExpr.() -> Unit)? = null) =
-            add(FromExpr(tables.toList(), this), op)
+        add(FromExpr(tables.toList(), this), op)
 
     fun where(op: WhereExpr.() -> Unit) =
-            add(WhereExpr(this), op)
+        add(WhereExpr(this), op)
 
     infix fun Column<*>.`in`(op: InExpr.() -> Unit) {
         add(InExpr(this, parent!!), op)
@@ -140,8 +140,8 @@ abstract class Expr(val parent: Expr?) {
     fun upper(value: Any?) = TextTransform(TextTransform.Type.UPPER, value)
     fun lower(value: Any?) = TextTransform(TextTransform.Type.LOWER, value)
 
-    private fun createComparison(receiver: Any?, param: Any?, sign: String)
-            = add(ComparisonExpr(receiver, sign, param, this@Expr))
+    private fun createComparison(receiver: Any?, param: Any?, sign: String) =
+        add(ComparisonExpr(receiver, sign, param, this@Expr))
 
 }
 
@@ -160,7 +160,8 @@ class ComparisonExpr(val column: Any?, val sign: String, val value: Any?, parent
 }
 
 
-class OrderByExpr(val col: Column<*>, var order: OrderByExpr.Order = OrderByExpr.Order.ASC, parent: Expr) : Expr(parent) {
+class OrderByExpr(val col: Column<*>, var order: OrderByExpr.Order = OrderByExpr.Order.ASC, parent: Expr) :
+    Expr(parent) {
     enum class Order { ASC, DESC }
 
     override fun render(s: StringBuilder) {
@@ -250,7 +251,8 @@ class JoinExpr(val table: Table, parent: Expr) : Expr(parent) {
     }
 }
 
-class BatchExpr<T>(val entities: Iterable<T>, val large: Boolean, val op: (BatchExpr<T>).(T) -> Unit, parent: Expr) : Expr(parent)
+class BatchExpr<T>(val entities: Iterable<T>, val large: Boolean, val op: (BatchExpr<T>).(T) -> Unit, parent: Expr) :
+    Expr(parent)
 
 class SelectExpr(val columns: Iterable<Column<*>>, parent: Expr) : Expr(parent) {
     override fun render(s: StringBuilder) {
