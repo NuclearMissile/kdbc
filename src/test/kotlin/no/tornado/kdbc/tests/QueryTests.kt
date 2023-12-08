@@ -5,9 +5,11 @@ import kdbc.transaction
 import no.tornado.kdbc.tests.models.Customer
 import no.tornado.kdbc.tests.tables.CUSTOMER
 import org.h2.jdbcx.JdbcDataSource
-import org.junit.Assert.*
-import org.junit.Test
 import java.sql.SQLException
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class QueryTests {
     companion object {
@@ -74,10 +76,10 @@ class QueryTests {
                     throw SQLException("I'm naughty")
                 }
             }
-        } catch (ex: SQLException) {
+        } catch (_: SQLException) {
         }
-        assertNotNull("Customer 1 should still be available", SelectCustomer().byId(1))
-        assertNotNull("Customer 2 should still be available", SelectCustomer().byId(2))
+        assertNotNull("Customer 1 should still be available", SelectCustomer().byId(1).toString())
+        assertNotNull("Customer 2 should still be available", SelectCustomer().byId(2).toString())
     }
 
 }

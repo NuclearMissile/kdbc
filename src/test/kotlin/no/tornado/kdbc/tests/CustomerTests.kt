@@ -44,7 +44,7 @@ class SelectFirstCustomerByName : Query<Customer>() {
     }
 }
 
-fun main(args: Array<String>) {
+fun main() {
     println(SelectFirstCustomerByName().render())
 }
 
