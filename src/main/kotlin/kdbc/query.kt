@@ -14,12 +14,17 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
 
-abstract class Query<T>(var connection: Connection? = null, var autoclose: Boolean = true, op: (Query<T>.() -> Unit)? = null) : Expr(null), Closeable {
+abstract class Query<T>(
+    var connection: Connection? = null,
+    var autoclose: Boolean = true,
+    op: (Query<T>.() -> Unit)? = null
+) : Expr(null), Closeable {
     private var withGeneratedKeys: (ResultSet.(Int) -> Unit)? = null
     val tables = mutableListOf<Table>()
     lateinit var stmt: PreparedStatement
     private var vetoclose: Boolean = false
-    private var mapper: () -> T = { throw SQLException("You must provide a mapper to this query by calling mapper { () -> T } or override `get(): T`.\n\n${describe()}") }
+    private var mapper: () -> T =
+        { throw SQLException("You must provide a mapper to this query by calling mapper { () -> T } or override `get(): T`.\n\n${describe()}") }
 
     init {
         op?.invoke(this)
@@ -115,6 +120,7 @@ abstract class Query<T>(var connection: Connection? = null, var autoclose: Boole
             }
         }
     }
+
     private fun requireResultSet(): ResultSet {
         vetoclose = true
         try {
@@ -187,7 +193,8 @@ abstract class Query<T>(var connection: Connection? = null, var autoclose: Boole
                     batch.expressions.clear()
                 }
 
-                val updates = if (batch.large) stmt.executeLargeBatch().toList() else stmt.executeBatch().map { it.toLong() }
+                val updates =
+                    if (batch.large) stmt.executeLargeBatch().toList() else stmt.executeBatch().map { it.toLong() }
                 connection!!.commit()
                 if (wasAutoCommit) connection!!.autoCommit = true
                 return ExecutionResult(this, false, updates)
@@ -217,11 +224,12 @@ abstract class Query<T>(var connection: Connection? = null, var autoclose: Boole
         }
     }
 
-    val params: List<Param> get() {
-        val list = mutableListOf<Param>()
-        gatherParams(list)
-        return list
-    }
+    val params: List<Param>
+        get() {
+            val list = mutableListOf<Param>()
+            gatherParams(list)
+            return list
+        }
 
     fun applyParameters() {
         params.filterNot { it.value is Column<*> }.forEachIndexed { pos, param ->
@@ -230,7 +238,8 @@ abstract class Query<T>(var connection: Connection? = null, var autoclose: Boole
     }
 
     private fun applyParameter(param: Param, pos: Int) {
-        val handler: TypeHandler<Any?>? = param.handler ?: if (param.value != null) typeHandlers[param.value.javaClass.kotlin] else null
+        val handler: TypeHandler<Any?>? =
+            param.handler ?: if (param.value != null) typeHandlers[param.value.javaClass.kotlin] else null
 
         if (handler != null) {
             handler.setParam(stmt, pos, param.value)
@@ -290,7 +299,11 @@ data class ExecutionResult<T>(val query: Query<T>, val hasResultSet: Boolean, va
     val updatedRows: Long get() = updates.sum()
 }
 
-inline fun <DomainType> query(connection: Connection? = null, autoclose: Boolean = true, crossinline op: Query<DomainType>.() -> Unit) = object : Query<DomainType>(connection, autoclose) {
+inline fun <DomainType> query(
+    connection: Connection? = null,
+    autoclose: Boolean = true,
+    crossinline op: Query<DomainType>.() -> Unit
+) = object : Query<DomainType>(connection, autoclose) {
     init {
         op(this)
     }

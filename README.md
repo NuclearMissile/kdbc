@@ -24,7 +24,7 @@ KDBC provides type safe SQL queries for Kotlin. Features:
 </dependency>
 ```
 
-## Usage 
+## Usage
 
 To query or update a table you need a `Table` object that represents the database table.
 
@@ -48,7 +48,6 @@ data class Customer(
 )
 ```
 
-
 A Query is encapsulated in a class. Every table you mention in the
 query needs an alias, defined by instantiating one or more `Table` instances.
 
@@ -71,13 +70,15 @@ class SelectCustomer : Query<Customer> {
 
 Notice how we call `alias.columnName()` to extract the value for the current column for the current row.
 
-To execute the query you instantiate the query class and call one of the execute actions `first()`, `firstOrNull()`, `list()`.
+To execute the query you instantiate the query class and call one of the execute
+actions `first()`, `firstOrNull()`, `list()`.
 
 ```kotlin
 val allCustomers = SelectCustomer().list()
 ```
 
-The query code we wrote in the init block can be reused for multiple queries. Let's add a `byId()` function to our `SelectCustomer` query class:
+The query code we wrote in the init block can be reused for multiple queries. Let's add a `byId()` function to
+our `SelectCustomer` query class:
 
 ```kotlin
 fun byId(id: Int) = first {
@@ -87,7 +88,8 @@ fun byId(id: Int) = first {
 }
 ```
 
-We use the table alias `c` to construct the SQL `WHERE c.id = :id` in a type safe manner. We can now get a specific customer:
+We use the table alias `c` to construct the SQL `WHERE c.id = :id` in a type safe manner. We can now get a specific
+customer:
 
 ```kotlin
 val customer = SelectCustomer().byId(42)
@@ -95,10 +97,12 @@ val customer = SelectCustomer().byId(42)
 
 ### Insert and Update
 
-These query classes normally takes one or more input parameters, and can extend `Insert`, `Update` or `Delete` instead of `Query`. There really isn't
+These query classes normally takes one or more input parameters, and can extend `Insert`, `Update` or `Delete` instead
+of `Query`. There really isn't
 much of a difference, expect that the three first doesn't require a type parameter, like `Query` does.
 
-The following `InsertCustomer` query takes a `customer` as a parameter, sets up a customer table alias and sets the name column to the
+The following `InsertCustomer` query takes a `customer` as a parameter, sets up a customer table alias and sets the name
+column to the
 name property of the input `Customer` object.
 
 ```kotlin
@@ -116,7 +120,8 @@ class InsertCustomer(customer: Customer) : Insert() {
 }
 ```
 
-The insert returns a generated key for the `id` column. This is the first and only generated key, and we assign it to the `id` property of the input `Customer` object inside the `generatedKeys` block.
+The insert returns a generated key for the `id` column. This is the first and only generated key, and we assign it to
+the `id` property of the input `Customer` object inside the `generatedKeys` block.
 This block is consulted after the insert is executed:
 
 ```kotlin
@@ -173,7 +178,7 @@ class SelectCustomer : Query<Customer> {
     init {
         select(c, s)
         from(c)
-        join (s) on {
+        join(s) on {
             s.id `=` c.state
         }
     }
@@ -218,7 +223,8 @@ requirement.
 
 Some times you want to pass multiple parameters to a search function and some of them might be nullable.
 
-Consider the following function that can search for customers with a certain name, and optionally of atleast a given age.
+Consider the following function that can search for customers with a certain name, and optionally of atleast a given
+age.
 
 ```kotlin
 fun search(name: String, minAge: Int?) = list {
@@ -233,6 +239,7 @@ fun search(name: String, minAge: Int?) = list {
 }
 
 ```
+
 > Yes, `name` is parameterized in the underlying prepared statement. SQL injection is not welcome here! :)
 
 ## DDL
@@ -248,6 +255,7 @@ class CUSTOMER : Table() {
     val name = column<String>("name", "text")
 }
 ```
+
 > Customer definition with DDL
 
 The DDL is then used when the test suite fires up:
@@ -264,16 +272,19 @@ we call `CUSTOMER().create()`, which generates the DDL and executes it to constr
 
 ## Connection handling
 
-For simple use against a single database, calling `KDBC.setDataSource` might be fine. There are more advanced strategies for choosing the connection
+For simple use against a single database, calling `KDBC.setDataSource` might be fine. There are more advanced strategies
+for choosing the connection
 on a per query basis as well.
 
 ### Query.connection()
 
-Every `Query` instance has a setter called `connection(connection)` which will configure the connection to be used for the query.
+Every `Query` instance has a setter called `connection(connection)` which will configure the connection to be used for
+the query.
 
 ```kotlin
 InsertCustomer(customer).connection(connection).execute()
 ```
+
 > Specify connection explicitly per query
 
 `Query` also takes an optional connection parameter in its constructor as an alternative:
@@ -281,11 +292,13 @@ InsertCustomer(customer).connection(connection).execute()
 ```kotlin
 InsertCustomer(connection, customer).execute()
 ```
+
 > Connection specified in query constructor
 
 ### Connection factory
 
-The connection factory is in charge of supplying a connection to any Query that hasn't been assigned a connection as execution time.
+The connection factory is in charge of supplying a connection to any Query that hasn't been assigned a connection as
+execution time.
 `KDBC.setDataSource()` actually calls `KDBC.setConnectionFactory` under the covers. It's implementation is simple:
 
 ```kotlin
@@ -294,7 +307,8 @@ fun setDataSource(dataSource: DataSource) {
 }
 ```
 
-The function passed to `setConnectionFactory` receives the query as it's single argument and is required to return a connection. The
+The function passed to `setConnectionFactory` receives the query as it's single argument and is required to return a
+connection. The
 following implementation inspects an annotation set on each query and assigns a connection based on that:
 
 ```kotlin
@@ -311,15 +325,19 @@ KDBC.setConnectionFactory { query ->
 }
 ```
 
-This is merely a suggestion and you can use whatever strategy you like, for example by inspecting the package the Query is in or even the presence of an interface etc.
+This is merely a suggestion and you can use whatever strategy you like, for example by inspecting the package the Query
+is in or even the presence of an interface etc.
 
 ## Transactions
 
-If the current connection has `autoCommit = true`, each query will be committed upon completion. This is the default for a manually created
-`java.sql.Connection`. A connection pool may change this behavior. For example, a JavaEE application will control transactions according to
+If the current connection has `autoCommit = true`, each query will be committed upon completion. This is the default for
+a manually created
+`java.sql.Connection`. A connection pool may change this behavior. For example, a JavaEE application will control
+transactions according to
 the JavaEE life cycle.
 
-KDBC has means to manually control the transaction context as well. To run multiple queries in the same transactions, wrap them in a `transaction` block:
+KDBC has means to manually control the transaction context as well. To run multiple queries in the same transactions,
+wrap them in a `transaction` block:
 
 ```kotlin
 transaction {
@@ -328,19 +346,24 @@ transaction {
 }
 ```
 
-To create a new connection that will participate in the same transaction, nest another `transaction` block inside the existing one.
+To create a new connection that will participate in the same transaction, nest another `transaction` block inside the
+existing one.
 
 The `transaction` block takes an optional `transactionType` parameter.
 
-This is by default set to `TransactionType.REQUIRED` which indicates that the transaction can participate in an already active transaction or create it's own if no transaction is active.
+This is by default set to `TransactionType.REQUIRED` which indicates that the transaction can participate in an already
+active transaction or create it's own if no transaction is active.
 
-Changing to TransactionType.REQUIRES_NEW will temporarily suspend any active transactions and resume them after the code inside the `transaction` block completes.
+Changing to TransactionType.REQUIRES_NEW will temporarily suspend any active transactions and resume them after the code
+inside the `transaction` block completes.
 
-If no connection is specified for the queries inside the block, the connection retrieved for the first query executed inside the transaction block will be used for all subsequent queries.
+If no connection is specified for the queries inside the block, the connection retrieved for the first query executed
+inside the transaction block will be used for all subsequent queries.
 
 ## Batch statements
 
-If your database supports it, you can do batch updates or inserts just by wrapping the code in `batch` and give it a list of objects to iterate over as it's single argument:
+If your database supports it, you can do batch updates or inserts just by wrapping the code in `batch` and give it a
+list of objects to iterate over as it's single argument:
 
 ```kotlin
 class InsertCustomersInBatch(customers: List<Customer>) : Insert() {
@@ -362,7 +385,8 @@ class InsertCustomersInBatch(customers: List<Customer>) : Insert() {
 
 ## Textual SQL
 
-If you come across an unsupported native SQL command or for some other reason need to enter arbitrary SQL, you can use the `append` call or simply `+`:
+If you come across an unsupported native SQL command or for some other reason need to enter arbitrary SQL, you can use
+the `append` call or simply `+`:
 
 ```kotlin
 + "custom sql here"
@@ -375,7 +399,8 @@ It is pretty easy to extend the framework to support custom native SQL commands.
 1. Extend the `Expr` class
 2. Define a function to create the Expr class
 
-Take a look in [expression.kt](https://github.com/edvin/kdbc/blob/master/src/main/kotlin/kdbc/expression.kt) to see how the existing expressions are implemented.
+Take a look in [expression.kt](https://github.com/edvin/kdbc/blob/master/src/main/kotlin/kdbc/expression.kt) to see how
+the existing expressions are implemented.
 
 Pull requests for native functions for all popular databases are welcome!
 

@@ -8,7 +8,7 @@ fun ResultSet.getLocalTime(label: String) = getTime(label)?.toLocalTime()
 fun ResultSet.getLocalDateTime(label: String) = getTimestamp(label)?.toLocalDateTime()
 fun ResultSet.getLocalDate(label: String) = getDate(label)?.toLocalDate()
 
-fun <T> ResultSet.iterator(mapper: (ResultSet) -> T) = ResultSetIterator(this,mapper)
+fun <T> ResultSet.iterator(mapper: (ResultSet) -> T) = ResultSetIterator(this, mapper)
 
 fun <T> ResultSet.asSequence(mapper: (ResultSet) -> T) = iterator(mapper).asSequence()
 

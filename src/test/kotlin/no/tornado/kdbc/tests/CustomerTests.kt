@@ -40,7 +40,7 @@ class SelectFirstCustomerByName : Query<Customer>() {
     init {
         select(c)
         from(c)
-        + "ORDER BY ${c.name} DESC LIMIT 1"
+        +"ORDER BY ${c.name} DESC LIMIT 1"
     }
 }
 

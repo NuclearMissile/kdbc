@@ -1,4 +1,3 @@
-
 **PURPOSE**: A functional, fluent Kotlin wrapper API to work with JDBC and `ResultSet` Sequences
 
 Please see [RxJava-JDBC](https://github.com/davidmoten/rxjava-jdbc) for inspiration behind these examples
@@ -8,13 +7,13 @@ Please see [RxJava-JDBC](https://github.com/davidmoten/rxjava-jdbc) for inspirat
 ```kotlin
 data class User(val id: Int, val firstName: String, val lastName: String)
 
-val ds: DataSource =  HikariConfig config = HikariConfig().apply {    
-	        jdbcUrl = "jdbc:sqlite://C:/mydatabases/MyDb.db"
-	        username = "bart"
-	        password = "51mp50n"
-	        minimumIdle = 1    
-	        maximumPoolSize = 5 
-          }.let { HikariDataSource(config) }
+val ds: DataSource = HikariConfig config = HikariConfig ().apply {
+    jdbcUrl = "jdbc:sqlite://C:/mydatabases/MyDb.db"
+    username = "bart"
+    password = "51mp50n"
+    minimumIdle = 1
+    maximumPoolSize = 5
+}.let { HikariDataSource(config) }
 
 ```
 
@@ -22,30 +21,28 @@ val ds: DataSource =  HikariConfig config = HikariConfig().apply {
 
 ```kotlin
 val user: Sequence<User> = ds.select("SELECT * FROM USER WHERE ID = #{id}")
-   .parameter("id",2563)
-   .get { User(it.getInt("ID"), it.getString("FIRST_NAME"), it.getString("LAST_NAME") } 
+    .parameter("id", 2563)
+    .get { User(it.getInt("ID"), it.getString("FIRST_NAME"), it.getString("LAST_NAME") }
 
 ```
 
 ###Using a Sequence for Parameter Values
 
 ```kotlin
-val ids = sequenceOf(2562,1212,322)
+val ids = sequenceOf(2562, 1212, 322)
 
 val user: Sequence<User> = ds.select("SELECT * FROM USER WHERE ID = ?")
-   .parameters(ids)
-   .get { User(it.getInt("ID"), it.getString("FIRST_NAME"), it.getString("LAST_NAME") } 
+    .parameters(ids)
+    .get { User(it.getInt("ID"), it.getString("FIRST_NAME"), it.getString("LAST_NAME") }
 
 ```
 
 ###Getting a Single `Sequence` of Values
 
-
 ```kotlin
 val user: Sequence<String> = ds.select("SELECT FIRST_NAME || ' ' || LAST_NAME FROM USER")
-   .getAs(String::class)
+    .getAs(String::class)
 ```
-
 
 ###Auto-Mapping
 
@@ -63,18 +60,17 @@ interface User {
 
 
 val user: Sequence<String> = ds.select("SELECT * FROM USER")
-   .automap(User::class)
+    .automap(User::class)
 ```
-
 
 ###INSERT with Generated Keys
 
 ```kotlin
-val newUsers = sequenceOf(User(-1,"Anna","Smith"),User(-1,"Sam","Thompson"))
+val newUsers = sequenceOf(User(-1, "Anna", "Smith"), User(-1, "Sam", "Thompson"))
 
-val newIds = newUsers.flatMap { 
+val newIds = newUsers.flatMap {
     ds.insert("INSERT INTO USER (FIRST_NAME, LAST_NAME) VALUES (#{it.firstName},#{it.lastName})")
-    .returnGeneratedKeys()
+        .returnGeneratedKeys()
 }
 ```
 
@@ -83,10 +79,10 @@ val newIds = newUsers.flatMap {
 ```kotlin
 val newUsers = ...
 
-val newIds = newUsers.flatMap { 
+val newIds = newUsers.flatMap {
     ds.insert("INSERT INTO USER (FIRST_NAME, LAST_NAME) VALUES (#{it.firstName},#{it.lastName})")
-    .batchSize(1000)  //not quite sure how to scope this :/
-    .returnGeneratedKeys()
+        .batchSize(1000)  //not quite sure how to scope this :/
+        .returnGeneratedKeys()
 }
 ```
 
